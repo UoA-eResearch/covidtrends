@@ -459,6 +459,8 @@ let app = new Vue({
       let grouped;
       if (selectedRegion == 'World') {
         grouped = this.groupByCountry(data, dates);
+        grouped = grouped.concat(data.filter(e => e["Province/State"] == "Hong Kong")
+            .map(e => ({...e, region: e["Province/State"]})));
       } else {
         grouped = this.filterByCountry(data, dates, selectedRegion);
       }
