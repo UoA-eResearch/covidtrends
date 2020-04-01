@@ -524,6 +524,12 @@ let app = new Vue({
     preprocessNZData(data, type) {
       console.log(data);
       let recastData = {};
+      let aggregates = {
+        "Auckland Region (3 DHBs)": ["Auckland", "Counties Manukau", "Waitemata"],
+        "Wellington Region (2 DHBs)": ["Capital and Coast", "Hutt Valley"],
+        "North Island (15 DHBs)": ["Auckland", "Bay of Plenty", "Capital and Coast", "Counties Manukau", "Hawke's Bay", "Hutt Valley", "Lakes", "MidCentral", "Northland", "Tairawhiti", "Taranaki", "Waikato", "Wairarapa", "Waitemata", "Whanganui"],
+        "South Island (5 DHBs)": ["Southern", "South Canterbury", "Canterbury", "Nelson Marlborough", "West Coast"]
+      }
       let minDate = new Date(data.reported[0].reported[0].variable);
       let maxDate = new Date(data.reported[data.reported.length - 1].reported[0].variable);
       console.log(minDate, maxDate);
@@ -540,7 +546,15 @@ let app = new Vue({
               total += dhb_info.reported[j].total;
             }
           }
-          d[date.toISOString().slice(0, 10)] = total;
+          let date_str = date.toISOString().slice(0, 10);
+          d[date_str] = total;
+          for (var aggregate_name in aggregates) {
+            let d = recastData[aggregate_name]  = (recastData[aggregate_name] || {"Province/State": aggregate_name, "Country/Region": "NZ", "Lat": null, "Long": null});
+            if (aggregates[aggregate_name].includes(name)) {
+              if (!d[date_str]) d[date_str] = 0;
+              d[date_str] += total;
+            }
+          }
         }
         date.setDate(date.getDate() + 1);
       }
