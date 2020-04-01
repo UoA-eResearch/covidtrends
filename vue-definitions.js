@@ -550,7 +550,7 @@ let app = new Vue({
               total += dhb_info.reported[j].total;
             }
           }
-          let date_str = date.toISOString().slice(0, 10);
+          let date_str = date.toLocaleDateString();
           d[date_str] = total;
           for (var aggregate_name in aggregates) {
             let d = recastData[aggregate_name]  = (recastData[aggregate_name] || {"Province/State": aggregate_name, "Country/Region": "NZ", "Lat": null, "Long": null});
