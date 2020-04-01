@@ -607,7 +607,7 @@ let app = new Vue({
     },
 
     createURL() {
-      let baseUrl = 'https://aatishb.com/covidtrends/?';
+      let baseUrl = 'https://uoa-eresearch.github.io/covidtrends/?';
 
       let queryUrl = new URLSearchParams();
 
