@@ -499,11 +499,13 @@ let app = new Vue({
       this.covidData = covidData.filter(e => e.maxCases > this.minCasesInCountry);
       this.countries = this.covidData.map(e => e.country).sort();
       const topCountries = this.covidData.sort((a, b) => b.maxCases - a.maxCases).slice(0, 9).map(e => e.country);
-      const notableCountries = ['China', 'India', 'US', // Top 3 by population
-          'South Korea', 'Singapore', 'Japan', // Observed success so far
-          'Canada', 'Australia']; // These appear in the region selector
+      const notableCountries = ['China', 'Taiwan', 'South Korea', 'Singapore', 'New Zealand', 'US', 'United Kingdom', 'Australia', 'Italy', 'France', 'Sweden', 'Hong Kong'];
       if (didRegionChange || this.selectedCountries == null) {
-        this.selectedCountries = this.countries.filter(e => topCountries.includes(e) || notableCountries.includes(e));
+        if (selectedRegion == "World") {
+          this.selectedCountries = this.countries.filter(e => notableCountries.includes(e));
+        } else {
+          this.selectedCountries = this.countries.filter(e => topCountries.includes(e));
+        }
       }
     },
 
