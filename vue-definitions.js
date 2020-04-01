@@ -404,7 +404,14 @@ let app = new Vue({
     },
 
     pullData(selectedData, selectedRegion, didRegionChange) {
-      if (selectedRegion != 'US') {
+      const type = (selectedData == 'Reported Deaths') ? 'deaths' : 'cases'
+      if (selectedRegion == "NZ") {
+        url = "https://raw.githubusercontent.com/nzherald/nz-covid19-data/master/data/cases.json";
+        Plotly.d3.json(url, (data) => this.processData(this.preprocessNZData(data, type), selectedRegion, didRegionChange));
+      } else if (selectedRegion == "US") {
+        const url = "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv";
+        Plotly.d3.csv(url, (data) => this.processData(this.preprocessNYTData(data, type), selectedRegion, didRegionChange));
+      } else {
         let url;
         if (selectedData == 'Confirmed Cases') {
          url = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv";
@@ -414,10 +421,6 @@ let app = new Vue({
           return;
         }
         Plotly.d3.csv(url, (data) => this.processData(data, selectedRegion, didRegionChange));
-      } else { // selectedRegion == 'US'
-        const type = (selectedData == 'Reported Deaths') ? 'deaths' : 'cases'
-        const url = "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv";
-        Plotly.d3.csv(url, (data) => this.processData(this.preprocessNYTData(data, type), selectedRegion, didRegionChange));
       }
     },
 
@@ -449,6 +452,7 @@ let app = new Vue({
     },
 
     processData(data, selectedRegion, didRegionChange) {
+      console.log(data);
       let dates = Object.keys(data[0]).slice(4);
       this.dates = dates;
 
@@ -515,6 +519,32 @@ let app = new Vue({
         let tmp = date.split("-");
         return `${tmp[1]}/${tmp[2]}/${tmp[0].substr(2)}`;
       }
+    },
+
+    preprocessNZData(data, type) {
+      console.log(data);
+      let recastData = {};
+      let minDate = new Date(data.reported[0].reported[0].variable);
+      let maxDate = new Date(data.reported[data.reported.length - 1].reported[0].variable);
+      console.log(minDate, maxDate);
+      let date = minDate;
+      while (date <= maxDate) {
+        for (let i in data.dhb) {
+          let dhb_info = data.dhb[i];
+          let name = dhb_info.dhb[0].variable;
+          let d = recastData[name]  = (recastData[name] || {"Province/State": name, "Country/Region": "NZ", "Lat": null, "Long": null});
+          let total = 0;
+          for (let j in dhb_info.reported) {
+            let dt = new Date(dhb_info.reported[j].variable);
+            if (dt <= date) {
+              total += dhb_info.reported[j].total;
+            }
+          }
+          d[date.toISOString().slice(0, 10)] = total;
+        }
+        date.setDate(date.getDate() + 1);
+      }
+      return Object.values(recastData);
     },
 
     play() {
@@ -655,6 +685,8 @@ let app = new Vue({
       switch (this.selectedRegion) {
         case 'World':
           return 'Countries';
+        case 'NZ':
+          return 'DHBs';
         case 'Australia':
         case 'US':
           return 'States';
@@ -675,9 +707,9 @@ let app = new Vue({
 
     selectedData: 'Confirmed Cases',
 
-    regions: ['World', 'US', 'China', 'Australia', 'Canada'],
+    regions: ['World', 'US', 'China', 'Australia', 'Canada', 'NZ'],
 
-    selectedRegion: 'World',
+    selectedRegion: 'NZ',
 
     sliderSelected: false,
 
@@ -689,7 +721,7 @@ let app = new Vue({
 
     selectedScale: 'Logarithmic Scale',
 
-    minCasesInCountry: 50,
+    minCasesInCountry: 10,
 
     dates: [],
 
