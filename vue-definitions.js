@@ -150,7 +150,7 @@ Vue.component('graph', {
         },
         hovermode: 'closest',
         font: {
-                family: 'Open Sans',
+                family: 'Open Sans, sans-serif',
                 color: "black",
                 size: 14
               },
@@ -201,9 +201,15 @@ Vue.component('graph', {
 
     setyrange() {
       let ymax = Math.max(...this.filteredSlope, 50);
+      let ymin = Math.min(...this.filteredSlope);
 
       if (this.scale == 'Logarithmic Scale') {
-        this.yrange = [0, Math.ceil(Math.log10(1.5*ymax))]
+        if (ymin < 10) {
+          // shift ymin on log scale when fewer than 10 cases
+          this.yrange = [0, Math.ceil(Math.log10(1.5*ymax))]
+        } else {
+          this.yrange = [1, Math.ceil(Math.log10(1.5*ymax))]
+        }
       } else {
         this.yrange = [-Math.pow(10,Math.floor(Math.log10(ymax))-2), Math.round(1.05 * ymax)];
       }
@@ -225,28 +231,32 @@ Vue.component('graph', {
 
     scale() {
       //console.log('scale change detected', this.scale);
-       this.makeGraph();
+      this.makeGraph();
     },
 
     day(newDay, oldDay) {
-      //console.log('day change detected', oldDay, newDay);
-      this.updateLayout();
-      this.updateAnimation();
+      if (this.updateDate) { // avoid race condition bug where day change triggers old layout
+        //console.log('day change detected', oldDay, newDay);
+        this.updateLayout();
+        this.updateAnimation();
+      }
     },
 
     selectedData() {
       //console.log('selected data change detected');
-      this.$emit('update:day', this.dates.length);
+      this.updateDate = false;
     },
 
     selectedRegion() {
       //console.log('selected region change detected');
-      this.$emit('update:day', this.dates.length);
+      this.updateDate = false;
     },
 
     data() {
       //console.log('data change detected');
+      this.$emit('update:day', this.dates.length);
       this.makeGraph();
+      this.updateDate = true;
     }
 
   },
@@ -266,6 +276,7 @@ Vue.component('graph', {
       yrange: [],
       autosetRange: true,
       graphMounted: false,
+      updateDate: true,
       config: {
           responsive: true,
           toImageButtonOptions: {
@@ -287,7 +298,8 @@ let app = new Vue({
   el: '#root',
 
   mounted() {
-    this.pullData(this.selectedData, this.selectedRegion, /* didRegionChange */ false);
+    //console.log('mounted');
+    this.pullData(this.selectedData, this.selectedRegion);
   },
 
   created: function() {
@@ -328,6 +340,8 @@ let app = new Vue({
 
       if (urlParameters.has('country')) {
         this.selectedCountries = urlParameters.getAll('country');
+      } else if (urlParameters.has('location')) {
+        this.selectedCountries = urlParameters.getAll('location');
       }
 
     }
@@ -349,16 +363,22 @@ let app = new Vue({
       }
 
     });
+
+    //console.log('created finished');
   },
 
 
   watch: {
     selectedData() {
-      this.pullData(this.selectedData, this.selectedRegion, /* didRegionChange */ false);
+      if (!this.firstLoad) {
+        this.pullData(this.selectedData, this.selectedRegion, /*updateSelectedCountries*/ false);
+      }
     },
 
     selectedRegion() {
-      this.pullData(this.selectedData, this.selectedRegion, /* didRegionChange */ true);
+      if (!this.firstLoad) {
+        this.pullData(this.selectedData, this.selectedRegion, /*updateSelectedCountries*/ true);
+      }
     },
 
     minDay() {
@@ -403,14 +423,15 @@ let app = new Vue({
       return Math.min.apply(Math, par);
     },
 
-    pullData(selectedData, selectedRegion, didRegionChange) {
+    pullData(selectedData, selectedRegion, updateSelectedCountries = true) {
+      //console.log('pulling', selectedData, ' for ', selectedRegion);
       const type = (selectedData == 'Reported Deaths') ? 'deaths' : 'cases'
       if (selectedRegion == "NZ") {
-        url = "https://raw.githubusercontent.com/UoA-eResearch/nz-covid19-data/master/data/cases.json";
-        Plotly.d3.json(url, (data) => this.processData(this.preprocessNZData(data, type), selectedRegion, didRegionChange));
+        const url = "https://raw.githubusercontent.com/UoA-eResearch/nz-covid19-data/master/data/cases.json";
+        Plotly.d3.json(url, (data) => this.processData(this.preprocessNZData(data, type), selectedRegion, updateSelectedCountries));
       } else if (selectedRegion == "US") {
         const url = "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv";
-        Plotly.d3.csv(url, (data) => this.processData(this.preprocessNYTData(data, type), selectedRegion, didRegionChange));
+        Plotly.d3.csv(url, (data) => this.processData(this.preprocessNYTData(data, type), selectedRegion, updateSelectedCountries));
       } else {
         let url;
         if (selectedData == 'Confirmed Cases') {
@@ -420,7 +441,7 @@ let app = new Vue({
         } else {
           return;
         }
-        Plotly.d3.csv(url, (data) => this.processData(data, selectedRegion, didRegionChange));
+        Plotly.d3.csv(url, (data) => this.processData(data, selectedRegion, updateSelectedCountries));
       }
     },
 
@@ -451,8 +472,7 @@ let app = new Vue({
           .map(e => ({...e, region: e["Province/State"]}));
     },
 
-    processData(data, selectedRegion, didRegionChange) {
-      console.log(data);
+    processData(data, selectedRegion, updateSelectedCountries) {
       let dates = Object.keys(data[0]).slice(4);
       this.dates = dates;
 
@@ -502,13 +522,16 @@ let app = new Vue({
       this.countries = this.covidData.map(e => e.country).sort();
       const topCountries = this.covidData.sort((a, b) => b.maxCases - a.maxCases).slice(0, 9).map(e => e.country);
       const notableCountries = ['China', 'Taiwan', 'South Korea', 'Singapore', 'New Zealand', 'US', 'United Kingdom', 'Australia', 'Italy', 'France', 'Sweden', 'Hong Kong'];
-      if (didRegionChange || this.selectedCountries == null) {
+      if (updateSelectedCountries || this.selectedCountries == null) {
         if (selectedRegion == "World") {
           this.selectedCountries = this.countries.filter(e => notableCountries.includes(e));
         } else {
           this.selectedCountries = this.countries.filter(e => topCountries.includes(e));
         }
       }
+
+      this.firstLoad = false;
+
     },
 
     preprocessNYTData(data, type) {
@@ -643,7 +666,7 @@ let app = new Vue({
 
       for (let country of this.countries) {
         if (this.selectedCountries.includes(country)) {
-        queryUrl.append('country', country);
+        queryUrl.append('location', country);
         }
       }
 
@@ -709,6 +732,7 @@ let app = new Vue({
         case 'US':
           return 'States';
         case 'China':
+          return 'Provinces and Regions';
         case 'Canada':
           return 'Provinces';
         default:
@@ -749,13 +773,15 @@ let app = new Vue({
 
     isHidden: true,
 
-    selectedCountries: null,
+    selectedCountries: [],
 
     graphMounted: false,
 
     autoplay: true,
 
     copied: false,
+
+    firstLoad: true
 
   }
 
