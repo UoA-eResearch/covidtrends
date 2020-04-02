@@ -557,6 +557,7 @@ let app = new Vue({
         "North Island (15 DHBs)": ["Auckland", "Bay of Plenty", "Capital and Coast", "Counties Manukau", "Hawke's Bay", "Hutt Valley", "Lakes", "MidCentral", "Northland", "Tairawhiti", "Taranaki", "Waikato", "Wairarapa", "Waitemata", "Whanganui"],
         "South Island (5 DHBs)": ["Southern", "South Canterbury", "Canterbury", "Nelson Marlborough", "West Coast"]
       }
+      aggregates["New Zealand (20 DHBs)"] = aggregates["North Island (15 DHBs)"].concat(aggregates["South Island (5 DHBs)"]);
       let minDate = new Date(data.reported[0].reported[0].variable);
       let maxDate = new Date(data.reported[data.reported.length - 1].reported[0].variable);
       console.log(minDate, maxDate);
