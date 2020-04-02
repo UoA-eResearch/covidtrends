@@ -95,7 +95,7 @@ Vue.component('graph', {
       let traces2 = this.data.map((e,i) => ({
         x: [e.cases[e.cases.length - 1]],
         y: [e.slope[e.slope.length - 1]],
-        text: e.country,
+        text: e.country.includes("DHB") ? "<b>" + e.country + "</b>" : e.country,
         name: e.country,
         mode: 'markers+text',
         legendgroup: i,

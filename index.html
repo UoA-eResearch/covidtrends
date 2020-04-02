@@ -128,7 +128,7 @@
           <ul style="padding-top: 0.5rem;">
             <li v-for="country in countries">
               <input type="checkbox" :id="country" :value="country" v-model="selectedCountries">
-              <label :for="country">{{country}}</label>
+              <label :class="{aggregate: country.includes('DHB')}" :for="country">{{country}}</label>
             </li>
           </ul>
 
