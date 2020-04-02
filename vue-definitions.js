@@ -406,7 +406,7 @@ let app = new Vue({
     pullData(selectedData, selectedRegion, didRegionChange) {
       const type = (selectedData == 'Reported Deaths') ? 'deaths' : 'cases'
       if (selectedRegion == "NZ") {
-        url = "https://raw.githubusercontent.com/nzherald/nz-covid19-data/master/data/cases.json";
+        url = "https://raw.githubusercontent.com/UoA-eResearch/nz-covid19-data/master/data/cases.json";
         Plotly.d3.json(url, (data) => this.processData(this.preprocessNZData(data, type), selectedRegion, didRegionChange));
       } else if (selectedRegion == "US") {
         const url = "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv";
