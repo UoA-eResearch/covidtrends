@@ -549,6 +549,7 @@ let app = new Vue({
     },
 
     preprocessNZData(data, type) {
+      if (type == "deaths") return [{}];
       console.log(data);
       let recastData = {};
       let aggregates = {
