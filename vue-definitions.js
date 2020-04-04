@@ -765,7 +765,11 @@ let app = new Vue({
 
     selectedScale: 'Logarithmic Scale',
 
-    minCasesInCountry: 10,
+    selectedTravelHistory: "All cases regardless of travel history",
+
+    travelHistoryOptions: ["All cases regardless of travel history", "International travel", "No international travel"],
+
+    minCasesInCountry: 0,
 
     dates: [],
 
