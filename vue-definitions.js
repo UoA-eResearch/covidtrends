@@ -192,7 +192,7 @@ Vue.component('graph', {
       let xmax = Math.max(...this.filteredCases, 50);
 
       if (this.scale == 'Logarithmic Scale') {
-        this.xrange = [1, Math.ceil(Math.log10(1.5*xmax))]
+        this.xrange = [0, Math.ceil(Math.log10(1.5*xmax))]
       } else {
         this.xrange = [-0.49*Math.pow(10,Math.floor(Math.log10(xmax))), Math.round(1.05 * xmax)];
       }
