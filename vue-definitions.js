@@ -595,7 +595,7 @@ let app = new Vue({
           } else if (this.selectedAge != c.age) {
             continue;
           }
-          if (type == this.nzDataTypes[0] && c.status != "Confirmed") continue;
+          if (type == this.dataTypes[0] && c.status != "Confirmed") continue;
           if (type == this.nzDataTypes[1] && c.status != "Probable") continue;
           let dt = new Date(c.reported);
           if (dt <= date) {
@@ -773,11 +773,11 @@ let app = new Vue({
 
     paused: true,
 
-    dataTypes: ['Cases', 'Reported Deaths'],
+    dataTypes: ['Confirmed Cases', 'Reported Deaths'],
 
-    nzDataTypes: ["Confirmed Cases", "Probable Cases"],
+    nzDataTypes: ["Confirmed/Probable Cases", "Probable Cases"],
 
-    selectedData: 'Cases',
+    selectedData: 'Confirmed Cases',
 
     regions: ['World', 'US', 'China', 'Australia', 'Canada', 'NZ'],
 
