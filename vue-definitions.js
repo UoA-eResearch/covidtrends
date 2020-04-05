@@ -390,6 +390,12 @@ let app = new Vue({
       }
     },
 
+    selectedAge() {
+      if (!this.firstLoad) {
+        this.pullData(this.selectedData, this.selectedRegion, /*updateSelectedCountries*/ false);
+      }
+    },
+
     minDay() {
       if (this.day < this.minDay) {
         this.day = this.minDay;
@@ -580,6 +586,15 @@ let app = new Vue({
           if (this.selectedTravelHistory == this.travelHistoryOptions[1] && c["international travel"] != "Yes") continue;
           if (this.selectedTravelHistory == this.travelHistoryOptions[2] && c["international travel"] != "No") continue;
           if (this.selectedTravelHistory == this.travelHistoryOptions[3] && c["international travel"] != undefined) continue;
+          if (this.selectedAge == this.ageOptions[0]) {
+            // pass
+          } else if (this.selectedAge == "<70") {
+            if (c.age == "70+") {
+              continue;
+            }
+          } else if (this.selectedAge != c.age) {
+            continue;
+          }
           if (type == this.nzDataTypes[0] && c.status != "Confirmed") continue;
           if (type == this.nzDataTypes[1] && c.status != "Probable") continue;
           let dt = new Date(c.reported);
@@ -781,6 +796,10 @@ let app = new Vue({
     selectedTravelHistory: "All cases regardless of travel history",
 
     travelHistoryOptions: ["All cases regardless of travel history", "International travel", "No international travel", "Unknown/No data"],
+
+    selectedAge: "All ages",
+
+    ageOptions: ["All ages", "0 to 9", "10 to 19", "20 to 29", "30 to 39", "40 to 49", "50 to 59", "60 to 69", "70+", "<70"],
 
     minCasesInCountry: 0,
 
