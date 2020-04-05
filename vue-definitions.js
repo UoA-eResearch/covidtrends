@@ -377,6 +377,9 @@ let app = new Vue({
 
     selectedRegion() {
       if (!this.firstLoad) {
+        if (this.selectedRegion != "NZ" && this.nzDataTypes.includes(this.selectedData)) {
+          this.selectedData = this.dataTypes[0];
+        }
         this.pullData(this.selectedData, this.selectedRegion, /*updateSelectedCountries*/ true);
       }
     },
@@ -434,7 +437,7 @@ let app = new Vue({
       const type = (selectedData == 'Reported Deaths') ? 'deaths' : 'cases'
       if (selectedRegion == "NZ") {
         const url = "https://raw.githubusercontent.com/nzherald/nz-covid19-data/master/data/cases.json";
-        Plotly.d3.json(url, (data) => this.processData(this.preprocessNZData(data, type), selectedRegion, updateSelectedCountries));
+        Plotly.d3.json(url, (data) => this.processData(this.preprocessNZData(data, selectedData), selectedRegion, updateSelectedCountries));
       } else if (selectedRegion == "US") {
         const url = "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv";
         Plotly.d3.csv(url, (data) => this.processData(this.preprocessNYTData(data, type), selectedRegion, updateSelectedCountries));
@@ -555,7 +558,7 @@ let app = new Vue({
     },
 
     preprocessNZData(data, type) {
-      if (type == "deaths") return [{}];
+      if (type == "Reported Deaths") return [{}];
       console.log(data);
       let recastData = {};
       let aggregates = {
@@ -577,6 +580,8 @@ let app = new Vue({
           if (this.selectedTravelHistory == this.travelHistoryOptions[1] && c["international travel"] != "Yes") continue;
           if (this.selectedTravelHistory == this.travelHistoryOptions[2] && c["international travel"] != "No") continue;
           if (this.selectedTravelHistory == this.travelHistoryOptions[3] && c["international travel"] != undefined) continue;
+          if (type == this.nzDataTypes[0] && c.status != "Confirmed") continue;
+          if (type == this.nzDataTypes[1] && c.status != "Probable") continue;
           let dt = new Date(c.reported);
           if (dt <= date) {
             let d = recastData[c.dhb]  = (recastData[c.dhb] || {"Province/State": c.dhb, "Country/Region": "NZ", "Lat": null, "Long": null});
@@ -753,9 +758,11 @@ let app = new Vue({
 
     paused: true,
 
-    dataTypes: ['Confirmed Cases', 'Reported Deaths'],
+    dataTypes: ['Cases', 'Reported Deaths'],
 
-    selectedData: 'Confirmed Cases',
+    nzDataTypes: ["Confirmed Cases", "Probable Cases"],
+
+    selectedData: 'Cases',
 
     regions: ['World', 'US', 'China', 'Australia', 'Canada', 'NZ'],
 

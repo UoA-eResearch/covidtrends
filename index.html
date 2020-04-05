@@ -98,6 +98,9 @@
             <option v-for="d in dataTypes" v-bind:value="d">
               {{ d }}
             </option>
+            <option v-if="selectedRegion == 'NZ'" v-for="d in nzDataTypes" v-bind:value="d">
+              {{ d }}
+            </option>
           </select>
 
           <select v-model="selectedRegion" @mousedown="pause">
