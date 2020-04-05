@@ -560,7 +560,8 @@ let app = new Vue({
       }
       aggregates["New Zealand (20 DHBs)"] = aggregates["North Island (15 DHBs)"].concat(aggregates["South Island (5 DHBs)"]);
       let minDate = new Date(data.reported[0].reported[0].variable);
-      let maxDate = new Date(data.reported[data.reported.length - 1].reported[0].variable);
+      // The last day in the dataset is reported at 9am, so is incomplete. Remove the last day.
+      let maxDate = new Date(data.reported[data.reported.length - 2].reported[0].variable);
       console.log(minDate, maxDate);
       let date = minDate;
       while (date <= maxDate) {
