@@ -112,6 +112,12 @@
             </option>
           </select>
 
+          <select v-if="selectedRegion == 'NZ'" v-model="selectedTravelHistory" @mousedown="pause">
+            <option v-for="s in travelHistoryOptions" v-bind:value="s">
+              {{ s }}
+            </option>
+          </select>
+
         </div>
 
         <div id="countries">

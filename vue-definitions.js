@@ -381,6 +381,12 @@ let app = new Vue({
       }
     },
 
+    selectedTravelHistory() {
+      if (!this.firstLoad) {
+        this.pullData(this.selectedData, this.selectedRegion, /*updateSelectedCountries*/ false);
+      }
+    },
+
     minDay() {
       if (this.day < this.minDay) {
         this.day = this.minDay;
@@ -565,24 +571,22 @@ let app = new Vue({
       console.log(minDate, maxDate);
       let date = minDate;
       while (date <= maxDate) {
-        for (let i in data.dhb) {
-          let dhb_info = data.dhb[i];
-          let name = dhb_info.dhb[0].variable;
-          let d = recastData[name]  = (recastData[name] || {"Province/State": name, "Country/Region": "NZ", "Lat": null, "Long": null});
-          let total = 0;
-          for (let j in dhb_info.reported) {
-            let dt = new Date(dhb_info.reported[j].variable);
-            if (dt <= date) {
-              total += dhb_info.reported[j].total;
-            }
-          }
-          let date_str = date.toLocaleDateString();
-          d[date_str] = total;
-          for (var aggregate_name in aggregates) {
-            let d = recastData[aggregate_name]  = (recastData[aggregate_name] || {"Province/State": aggregate_name, "Country/Region": "NZ", "Lat": null, "Long": null});
-            if (aggregates[aggregate_name].includes(name)) {
-              if (!d[date_str]) d[date_str] = 0;
-              d[date_str] += total;
+        let date_str = date.toLocaleDateString();
+        for (let i in data.cases) {
+          let c = data.cases[i];
+          if (this.selectedTravelHistory == this.travelHistoryOptions[1] && c["international travel"] != "Yes") continue;
+          if (this.selectedTravelHistory == this.travelHistoryOptions[2] && c["international travel"] != "No") continue;
+          let dt = new Date(c.reported);
+          if (dt <= date) {
+            let d = recastData[c.dhb]  = (recastData[c.dhb] || {"Province/State": c.dhb, "Country/Region": "NZ", "Lat": null, "Long": null});
+            if (!d[date_str]) d[date_str] = 0;
+            d[date_str]++;
+            for (var aggregate_name in aggregates) {
+              let d = recastData[aggregate_name]  = (recastData[aggregate_name] || {"Province/State": aggregate_name, "Country/Region": "NZ", "Lat": null, "Long": null});
+              if (aggregates[aggregate_name].includes(c.dhb)) {
+                if (!d[date_str]) d[date_str] = 0;
+                d[date_str]++;
+              }
             }
           }
         }
