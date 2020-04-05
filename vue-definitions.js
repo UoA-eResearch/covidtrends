@@ -576,6 +576,7 @@ let app = new Vue({
           let c = data.cases[i];
           if (this.selectedTravelHistory == this.travelHistoryOptions[1] && c["international travel"] != "Yes") continue;
           if (this.selectedTravelHistory == this.travelHistoryOptions[2] && c["international travel"] != "No") continue;
+          if (this.selectedTravelHistory == this.travelHistoryOptions[3] && c["international travel"] != undefined) continue;
           let dt = new Date(c.reported);
           if (dt <= date) {
             let d = recastData[c.dhb]  = (recastData[c.dhb] || {"Province/State": c.dhb, "Country/Region": "NZ", "Lat": null, "Long": null});
@@ -772,7 +773,7 @@ let app = new Vue({
 
     selectedTravelHistory: "All cases regardless of travel history",
 
-    travelHistoryOptions: ["All cases regardless of travel history", "International travel", "No international travel"],
+    travelHistoryOptions: ["All cases regardless of travel history", "International travel", "No international travel", "Unknown/No data"],
 
     minCasesInCountry: 0,
 
