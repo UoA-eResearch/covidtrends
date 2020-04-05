@@ -127,8 +127,11 @@ Vue.component('graph', {
         this.autosetRange = false;
       }
 
+      let timePrefix = "";
+      if (this.selectedRegion == "NZ") timePrefix = "to 11:59pm ";
+
       this.layout = {
-        title: 'Trajectory of COVID-19 '+ this.selectedData + ' (' + this.dates[this.day - 1] + ')',
+        title: 'Trajectory of COVID-19 '+ this.selectedData + ' (' + timePrefix + this.dates[this.day - 1] + ')',
         showlegend: false,
         xaxis: {
           title: 'Total ' + this.selectedData,
