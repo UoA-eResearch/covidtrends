@@ -119,12 +119,6 @@
             </option>
           </select>
 
-          <select v-model="selectedScale" @mousedown="pause">
-            <option v-for="s in scale" v-bind:value="s">
-              {{ s }}
-            </option>
-          </select>
-
           <select v-if="selectedRegion == 'NZ'" v-model="selectedTravelHistory" @mousedown="pause">
             <option v-for="s in travelHistoryOptions" v-bind:value="s">
               {{ s }}
