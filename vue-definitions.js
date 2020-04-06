@@ -138,7 +138,7 @@ Vue.component('graph', {
           type: this.scale == 'Logarithmic Scale' ? 'log' : 'linear',
           range: this.xrange,
           titlefont: {
-            size: 24,
+            size: 18,
             color: 'rgba(254, 52, 110,1)'
           },
         },
@@ -147,7 +147,7 @@ Vue.component('graph', {
           type: this.scale == 'Logarithmic Scale' ? 'log' : 'linear',
           range: this.yrange,
           titlefont: {
-            size: 24,
+            size: 18,
             color: 'rgba(254, 52, 110,1)'
           },
         },
@@ -856,7 +856,7 @@ let app = new Vue({
 
     nzDataTypes: ["Confirmed/Probable Cases", "Probable Cases"],
 
-    selectedData: 'Confirmed Cases',
+    selectedData: 'Confirmed/Probable Cases',
 
     regions: ['World', 'US', 'China', 'Australia', 'Canada', 'NZ'],
 
