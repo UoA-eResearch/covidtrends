@@ -674,6 +674,10 @@ let app = new Vue({
           if (this.selectedTravelHistory == this.travelHistoryOptions[3] && c["international travel"] != undefined) continue;
           if (this.selectedAge == this.ageOptions[0]) {
             // pass
+          } else if (this.selectedAge == "30-69") {
+            if (!["30 to 39", "40 to 49", "50 to 59", "60 to 69"].includes(c.age)) {
+              continue;
+            }
           } else if (this.selectedAge == "<70") {
             if (c.age == "70+") {
               continue;
@@ -919,7 +923,7 @@ let app = new Vue({
 
     selectedAge: "All ages",
 
-    ageOptions: ["All ages", "0 to 9", "10 to 19", "20 to 29", "30 to 39", "40 to 49", "50 to 59", "60 to 69", "70+", "<70"],
+    ageOptions: ["All ages", "0 to 9", "10 to 19", "20 to 29", "30 to 39", "40 to 49", "50 to 59", "60 to 69", "70+", "<70", "30-69"],
 
     minCasesInCountry: 0,
 
