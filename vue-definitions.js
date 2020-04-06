@@ -579,9 +579,12 @@ let app = new Vue({
       this.countries = this.covidData.map(e => e.country).sort();
       const topCountries = this.covidData.sort((a, b) => b.maxCases - a.maxCases).slice(0, 9).map(e => e.country);
       const notableCountries = ['China', 'Taiwan', 'South Korea', 'Singapore', 'New Zealand', 'US', 'United Kingdom', 'Australia', 'Italy', 'France', 'Sweden', 'Hong Kong'];
+      const initialDHBs = ["New Zealand (20 DHBs)", "North Island (15 DHBs)", "South Island (5 DHBs)"]
       if ((this.selectedCountries.length === 0 || !this.firstLoad) && updateSelectedCountries) {
         if (selectedRegion == "World") {
           this.selectedCountries = this.countries.filter(e => notableCountries.includes(e));
+        } else if (selectedRegion == "NZ") {
+          this.selectedCountries = this.countries.filter(e => initialDHBs.includes(e));
         } else {
           this.selectedCountries = this.countries.filter(e => topCountries.includes(e));
         }
