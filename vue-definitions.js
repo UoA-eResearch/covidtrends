@@ -618,10 +618,16 @@ let app = new Vue({
         "North Island (15 DHBs)": ["Auckland", "Bay of Plenty", "Capital and Coast", "Counties Manukau", "Hawke's Bay", "Hutt Valley", "Lakes", "MidCentral", "Northland", "Tairawhiti", "Taranaki", "Waikato", "Wairarapa", "Waitemata", "Whanganui"],
         "South Island (5 DHBs)": ["Southern", "South Canterbury", "Canterbury", "Nelson Marlborough", "West Coast"]
       }
+      let transmissionTypes = {
+        "overseas": "Overseas transmission",
+        "contact": "Contact with a known case transmission",
+        "investigating": "Investigating transmission",
+        "community": "Community transmission"
+      }
       aggregates["New Zealand (20 DHBs)"] = aggregates["North Island (15 DHBs)"].concat(aggregates["South Island (5 DHBs)"]);
-      let minDate = new Date(data.reported[0].reported[0].variable);
+      let minDate = new Date(data.manual[0].date);
       // The last day in the dataset is reported at 9am, so is incomplete. Remove the last day.
-      let maxDate = new Date(data.reported[data.reported.length - 2].reported[0].variable);
+      let maxDate = new Date(data.manual[data.manual.length - 1].date);
       console.log(minDate, maxDate);
       let date = minDate;
       while (date <= maxDate) {
@@ -643,9 +649,9 @@ let app = new Vue({
           if (type == this.dataTypes[0] && c.status != "Confirmed") continue;
           if (type == this.nzDataTypes[1] && c.status != "Probable") continue;
           let dt = new Date(c.reported);
+          let d = recastData[c.dhb]  = (recastData[c.dhb] || {"Province/State": c.dhb, "Country/Region": "NZ", "Lat": null, "Long": null});
+          if (!d[date_str]) d[date_str] = 0;
           if (dt <= date) {
-            let d = recastData[c.dhb]  = (recastData[c.dhb] || {"Province/State": c.dhb, "Country/Region": "NZ", "Lat": null, "Long": null});
-            if (!d[date_str]) d[date_str] = 0;
             d[date_str]++;
             for (var aggregate_name in aggregates) {
               let d = recastData[aggregate_name]  = (recastData[aggregate_name] || {"Province/State": aggregate_name, "Country/Region": "NZ", "Lat": null, "Long": null});
@@ -656,8 +662,25 @@ let app = new Vue({
             }
           }
         }
+        for (let i in data.manual) {
+          let r = data.manual[i];
+          let dt = new Date(r.date);
+          for (let t in transmissionTypes) {
+            let name = transmissionTypes[t]
+            let d = recastData[t]  = (recastData[t] || {"Province/State": name, "Country/Region": "NZ", "Lat": null, "Long": null});
+            if (!d[date_str]) d[date_str] = 0;
+            if (dt <= date) {
+              if (r[t]) {
+                d[date_str] = r[t]
+              }
+            }
+          }
+        }
         date.setDate(date.getDate() + 1);
       }
+
+
+      console.log(recastData)
       return Object.values(recastData);
     },
 
