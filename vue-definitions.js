@@ -662,6 +662,7 @@ let app = new Vue({
             }
           }
         }
+        /*
         for (let i in data.manual) {
           let r = data.manual[i];
           let dt = new Date(r.date);
@@ -676,6 +677,7 @@ let app = new Vue({
             }
           }
         }
+        */
         date.setDate(date.getDate() + 1);
       }
 
