@@ -69,8 +69,7 @@ Vue.component('graph', {
     },
 
     formatDate(date) {
-      let [m, d, y] = date.split('/');
-      return new Date(2000 + (+y), m-1, d).toISOString().slice(0, 10);
+      return new Date(date).toISOString().slice(0, 10);
     },
 
     updateTraces() {
@@ -82,7 +81,7 @@ Vue.component('graph', {
         y: e.slope,
         name: e.country,
         //text: this.dates.map(date => e.country + '<br>' + this.formatDate(date) ),
-        text: this.dates.map(date => e.country + '<br>' + date ),
+        text: this.dates.map(date => e.country + '<br>' + this.formatDate(date) ),
         mode: showDailyMarkers ? 'lines+markers' : 'lines',
         type: 'scatter',
         legendgroup: i,
@@ -133,12 +132,15 @@ Vue.component('graph', {
         this.autosetRange = false;
       }
 
-      let timePrefix = "";
-      if (this.selectedRegion == "NZ") timePrefix = "to 11:59pm ";
+      let timePrefix = "to 11:59pm ";
+      if (this.selectedRegion == "NZ") {
+        timePrefix += "NZST ";
+      } else {
+        timePrefix += "UTC "
+      }
 
       this.layout = {
-        title: 'Trajectory of COVID-19 '+ this.selectedData + ' (' + timePrefix + this.dates[this.day - 1] + ')',
-        //title: 'Trajectory of COVID-19 '+ this.selectedData + ' (' + this.formatDate(this.dates[this.day - 1]) + ')',
+        title: 'Trajectory of COVID-19 '+ this.selectedData + ' (' + timePrefix + this.formatDate(this.dates[this.day - 1]) + ')',
         showlegend: false,
         xaxis: {
           title: 'Total ' + this.selectedData,
@@ -464,8 +466,7 @@ let app = new Vue({
     },
 
     formatDate(date) {
-      let [m, d, y] = date.split('/');
-      return new Date(2000 + (+y), m-1, d).toISOString().slice(0, 10);
+      return new Date(date).toISOString().slice(0, 10);
     },
 
     myMax() { //https://stackoverflow.com/a/12957522
