@@ -904,9 +904,9 @@ let app = new Vue({
 
     dataTypes: ['Confirmed Cases', 'Reported Deaths'],
 
-    nzDataTypes: ["Confirmed/Probable Cases", "Probable Cases"],
+    nzDataTypes: ["Confirmed and Probable Cases", "Probable Cases"],
 
-    selectedData: 'Confirmed/Probable Cases',
+    selectedData: 'Confirmed and Probable Cases',
 
     regions: ['World', 'US', 'China', 'Australia', 'Canada', 'NZ'],
 
