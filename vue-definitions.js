@@ -667,7 +667,7 @@ let app = new Vue({
       console.log(minDate, maxDate);
       let date = minDate;
       while (date <= maxDate) {
-        let date_str = date.toLocaleDateString();
+        let date_str = date;
         for (let i in data.cases) {
           let c = data.cases[i];
           if (this.selectedTravelHistory == this.travelHistoryOptions[1] && c["international travel"] != "Yes") continue;
