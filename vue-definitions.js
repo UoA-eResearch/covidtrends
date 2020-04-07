@@ -469,7 +469,7 @@ let app = new Vue({
       if (!date) return "";
       if (typeof(date) == "string" && date.includes("/")) {
         let [m, d, y] = date.split('/');
-        return new Date(2000 + (+y), m-1, d).toISOString().slice(0, 10);
+        return new Date(Date.UTC(2000 + (+y), m-1, d)).toISOString().slice(0, 10);
       } else {
         return new Date(date).toISOString().slice(0, 10);
       }
