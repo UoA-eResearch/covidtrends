@@ -471,7 +471,14 @@ let app = new Vue({
         let [m, d, y] = date.split('/');
         return new Date(Date.UTC(2000 + (+y), m-1, d)).toISOString().slice(0, 10);
       } else {
-        return new Date(date).toISOString().slice(0, 10);
+        date = new Date(date);
+        var mm = date.getMonth() + 1; // getMonth() is zero-based
+        var dd = date.getDate();
+
+        return [date.getFullYear(),
+                (mm>9 ? '' : '0') + mm,
+                (dd>9 ? '' : '0') + dd
+                ].join('-');
       }
     },
 
@@ -672,10 +679,10 @@ let app = new Vue({
         "community": "Community transmission"
       }
       aggregates["New Zealand (20 DHBs)"] = aggregates["North Island (15 DHBs)"].concat(aggregates["South Island (5 DHBs)"]);
-      var dates = data.map(e => e.ReportedDate).sort();
+      var dates = this.removeRepeats(data.map(e => e.ReportedDate).sort());
       let minDate = new Date(dates[0]);
       // The last day in the dataset is reported at 9am, so is incomplete. Remove the last day.
-      let maxDate = new Date(dates[dates.length - 1]);
+      let maxDate = new Date(dates[dates.length - 2]);
       console.log(minDate, maxDate);
       let date = minDate;
       while (date <= maxDate) {
