@@ -499,8 +499,12 @@ let app = new Vue({
       //console.log('pulling', selectedData, ' for ', selectedRegion);
       const type = (selectedData == 'Reported Deaths') ? 'deaths' : 'cases'
       if (selectedRegion == "NZ") {
-        const url = "https://raw.githubusercontent.com/nzherald/nz-covid19-data/master/data/cases.json";
-        Plotly.d3.json(url, (data) => this.processData(this.preprocessNZData(data, selectedData), selectedRegion, updateSelectedCountries));
+        if (this.NZ_DATA) {
+          this.processData(this.preprocessNZData(this.NZ_DATA, selectedData), selectedRegion, updateSelectedCountries);
+        } else {
+          const url = "https://nzcovid19api.xerra.nz/cases/json";
+          Plotly.d3.json(url, (data) => this.processData(this.preprocessNZData(data, selectedData), selectedRegion, updateSelectedCountries));
+        }
       } else if (selectedRegion == "US") {
         const url = "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv";
         Plotly.d3.csv(url, (data) => this.processData(this.preprocessNYTData(data, type), selectedRegion, updateSelectedCountries));
@@ -651,6 +655,7 @@ let app = new Vue({
     },
 
     preprocessNZData(data, type) {
+      this.NZ_DATA = data;
       if (type == "Reported Deaths") return [{}];
       console.log(data);
       let recastData = {};
@@ -667,63 +672,44 @@ let app = new Vue({
         "community": "Community transmission"
       }
       aggregates["New Zealand (20 DHBs)"] = aggregates["North Island (15 DHBs)"].concat(aggregates["South Island (5 DHBs)"]);
-      let minDate = new Date(data.manual[0].date);
+      var dates = data.map(e => e.ReportedDate).sort();
+      let minDate = new Date(dates[0]);
       // The last day in the dataset is reported at 9am, so is incomplete. Remove the last day.
-      let maxDate = new Date(data.manual[data.manual.length - 1].date);
+      let maxDate = new Date(dates[dates.length - 1]);
       console.log(minDate, maxDate);
       let date = minDate;
       while (date <= maxDate) {
         let date_str = date;
-        for (let i in data.cases) {
-          let c = data.cases[i];
-          if (this.selectedTravelHistory == this.travelHistoryOptions[1] && c["international travel"] != "Yes") continue;
-          if (this.selectedTravelHistory == this.travelHistoryOptions[2] && c["international travel"] != "No") continue;
-          if (this.selectedTravelHistory == this.travelHistoryOptions[3] && c["international travel"] != undefined) continue;
-          if (this.selectedAge == this.ageOptions[0]) {
-            // pass
-          } else if (this.selectedAge == "30-69") {
-            if (!["30 to 39", "40 to 49", "50 to 59", "60 to 69"].includes(c.age)) {
-              continue;
-            }
-          } else if (this.selectedAge == "<70") {
-            if (c.age == "70+") {
-              continue;
-            }
-          } else if (this.selectedAge != c.age) {
-            continue;
+        for (let i in data) {
+          let c = data[i];
+          if (this.selectedTravelHistory == this.travelHistoryOptions[1] && c.IsTravelRelated.Value === false) continue;
+          if (this.selectedTravelHistory == this.travelHistoryOptions[2] && c.IsTravelRelated.Value === true) continue;
+          if (this.selectedTravelHistory == this.travelHistoryOptions[3] && c.IsTravelRelated.Valid === true) continue;
+          //ageOptions: ["All ages", "0 to 9", "10 to 19", "20 to 29", "30 to 39", "40 to 49", "50 to 59", "60 to 69", "70+", "<70", "30 to 69"],
+          if (this.selectedAge == "<70" && c.Age.OlderOrEqualToAge >= 70) continue;
+          if (this.selectedAge == "70+" && c.Age.YoungerThanAge < 70) continue;
+          if (this.selectedAge.includes("to")) {
+            let bits = this.selectedAge.split(" to ");
+            let min = bits[0];
+            let max = bits[1];
+            if (c.Age.YoungerThanAge < min || c.Age.OlderOrEqualToAge > max) continue;
           }
-          if (type == this.dataTypes[0] && c.status != "Confirmed") continue;
-          if (type == this.nzDataTypes[1] && c.status != "Probable") continue;
-          let dt = new Date(c.reported);
-          let d = recastData[c.dhb]  = (recastData[c.dhb] || {"Province/State": c.dhb, "Country/Region": "NZ", "Lat": null, "Long": null});
+          if (type == this.dataTypes[0] && c.CaseType != "confirmed") continue;
+          if (type == this.nzDataTypes[1] && c.CaseType != "probable") continue;
+          let dt = new Date(c.ReportedDate);
+          let d = recastData[c.LocationName]  = (recastData[c.LocationName] || {"Province/State": c.LocationName, "Country/Region": "NZ", "Lat": null, "Long": null});
           if (!d[date_str]) d[date_str] = 0;
           if (dt <= date) {
             d[date_str]++;
             for (var aggregate_name in aggregates) {
               let d = recastData[aggregate_name]  = (recastData[aggregate_name] || {"Province/State": aggregate_name, "Country/Region": "NZ", "Lat": null, "Long": null});
-              if (aggregates[aggregate_name].includes(c.dhb)) {
+              if (aggregates[aggregate_name].includes(c.LocationName)) {
                 if (!d[date_str]) d[date_str] = 0;
                 d[date_str]++;
               }
             }
           }
         }
-        /*
-        for (let i in data.manual) {
-          let r = data.manual[i];
-          let dt = new Date(r.date);
-          for (let t in transmissionTypes) {
-            let name = transmissionTypes[t]
-            let d = recastData[t]  = (recastData[t] || {"Province/State": name, "Country/Region": "NZ", "Lat": null, "Long": null});
-            if (!d[date_str]) d[date_str] = 0;
-            if (dt <= date) {
-              if (r[t]) {
-                d[date_str] = r[t]
-              }
-            }
-          }
-        }
-        */
         date.setDate(date.getDate() + 1);
       }
 
@@ -930,7 +916,7 @@ let app = new Vue({
 
     selectedAge: "All ages",
 
-    ageOptions: ["All ages", "0 to 9", "10 to 19", "20 to 29", "30 to 39", "40 to 49", "50 to 59", "60 to 69", "70+", "<70", "30-69"],
+    ageOptions: ["All ages", "0 to 9", "10 to 19", "20 to 29", "30 to 39", "40 to 49", "50 to 59", "60 to 69", "70+", "<70", "30 to 69"],
 
     minCasesInCountry: 0,
 
