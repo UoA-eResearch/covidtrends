@@ -471,14 +471,7 @@ let app = new Vue({
         let [m, d, y] = date.split('/');
         return new Date(Date.UTC(2000 + (+y), m-1, d)).toISOString().slice(0, 10);
       } else {
-        date = new Date(date);
-        var mm = date.getMonth() + 1; // getMonth() is zero-based
-        var dd = date.getDate();
-
-        return [date.getFullYear(),
-                (mm>9 ? '' : '0') + mm,
-                (dd>9 ? '' : '0') + dd
-                ].join('-');
+        return new Date(date).toISOString().slice(0, 10);
       }
     },
 
@@ -506,12 +499,8 @@ let app = new Vue({
       //console.log('pulling', selectedData, ' for ', selectedRegion);
       const type = (selectedData == 'Reported Deaths') ? 'deaths' : 'cases'
       if (selectedRegion == "NZ") {
-        if (this.NZ_DATA) {
-          this.processData(this.preprocessNZData(this.NZ_DATA, selectedData), selectedRegion, updateSelectedCountries);
-        } else {
-          const url = "https://nzcovid19api.xerra.nz/cases/json";
-          Plotly.d3.json(url, (data) => this.processData(this.preprocessNZData(data, selectedData), selectedRegion, updateSelectedCountries));
-        }
+        const url = "https://raw.githubusercontent.com/uoa-eresearch/nz-covid19-data-auto/master/data.csv";
+        Plotly.d3.csv(url, (data) => this.processData(this.preprocessNZData(data, selectedData), selectedRegion, updateSelectedCountries));
       } else if (selectedRegion == "US") {
         const url = "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv";
         Plotly.d3.csv(url, (data) => this.processData(this.preprocessNYTData(data, type), selectedRegion, updateSelectedCountries));
@@ -662,7 +651,6 @@ let app = new Vue({
     },
 
     preprocessNZData(data, type) {
-      this.NZ_DATA = data;
       if (type == "Reported Deaths") return [{}];
       console.log(data);
       let recastData = {};
@@ -679,38 +667,44 @@ let app = new Vue({
         "community": "Community transmission"
       }
       aggregates["New Zealand (20 DHBs)"] = aggregates["North Island (15 DHBs)"].concat(aggregates["South Island (5 DHBs)"]);
-      var dates = this.removeRepeats(data.map(e => e.ReportedDate).sort());
+      let dates = this.removeRepeats(data.map(e => e["Date of report"]).sort())
       let minDate = new Date(dates[0]);
       // The last day in the dataset is reported at 9am, so is incomplete. Remove the last day.
       let maxDate = new Date(dates[dates.length - 2]);
+      minDate.setHours(23);
+      maxDate.setHours(23);
       console.log(minDate, maxDate);
       let date = minDate;
       while (date <= maxDate) {
         let date_str = date;
         for (let i in data) {
           let c = data[i];
-          if (this.selectedTravelHistory == this.travelHistoryOptions[1] && c.IsTravelRelated.Value === false) continue;
-          if (this.selectedTravelHistory == this.travelHistoryOptions[2] && c.IsTravelRelated.Value === true) continue;
-          if (this.selectedTravelHistory == this.travelHistoryOptions[3] && c.IsTravelRelated.Valid === true) continue;
-          //ageOptions: ["All ages", "0 to 9", "10 to 19", "20 to 29", "30 to 39", "40 to 49", "50 to 59", "60 to 69", "70+", "<70", "30 to 69"],
-          if (this.selectedAge == "<70" && c.Age.OlderOrEqualToAge >= 70) continue;
-          if (this.selectedAge == "70+" && c.Age.YoungerThanAge < 70) continue;
-          if (this.selectedAge.includes("to")) {
-            let bits = this.selectedAge.split(" to ");
-            let min = bits[0];
-            let max = bits[1];
-            if (c.Age.YoungerThanAge < min || c.Age.OlderOrEqualToAge > max) continue;
+          if (this.selectedTravelHistory == this.travelHistoryOptions[1] && c["International travel"] != "Yes") continue;
+          if (this.selectedTravelHistory == this.travelHistoryOptions[2] && c["International travel"] != "No") continue;
+          if (this.selectedTravelHistory == this.travelHistoryOptions[3] && c["International travel"] != "") continue;
+          if (this.selectedAge == this.ageOptions[0]) {
+            // pass
+          } else if (this.selectedAge == "30 to 69") {
+            if (!["30 to 39", "40 to 49", "50 to 59", "60 to 69"].includes(c["Age group"])) {
+              continue;
+            }
+          } else if (this.selectedAge == "<70") {
+            if (c["Age group"] == "70+") {
+              continue;
+            }
+          } else if (this.selectedAge != c["Age group"]) {
+            continue;
           }
-          if (type == this.dataTypes[0] && c.CaseType != "confirmed") continue;
-          if (type == this.nzDataTypes[1] && c.CaseType != "probable") continue;
-          let dt = new Date(c.ReportedDate);
-          let d = recastData[c.LocationName]  = (recastData[c.LocationName] || {"Province/State": c.LocationName, "Country/Region": "NZ", "Lat": null, "Long": null});
+          if (type == this.dataTypes[0] && c["Case Type"] != "Confirmed") continue;
+          if (type == this.nzDataTypes[1] && c["Case Type"] != "Probable") continue;
+          let dt = new Date(c["Date of report"]);
+          let d = recastData[c.DHB]  = (recastData[c.DHB] || {"Province/State": c.DHB, "Country/Region": "NZ", "Lat": null, "Long": null});
           if (!d[date_str]) d[date_str] = 0;
           if (dt <= date) {
             d[date_str]++;
             for (var aggregate_name in aggregates) {
               let d = recastData[aggregate_name]  = (recastData[aggregate_name] || {"Province/State": aggregate_name, "Country/Region": "NZ", "Lat": null, "Long": null});
-              if (aggregates[aggregate_name].includes(c.LocationName)) {
+              if (aggregates[aggregate_name].includes(c.DHB)) {
                 if (!d[date_str]) d[date_str] = 0;
                 d[date_str]++;
               }
