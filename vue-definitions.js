@@ -675,10 +675,7 @@ let app = new Vue({
       console.log(dates);
       let minDate = new Date(dates[0]);
       // The last day in the dataset is reported at 9am, so is incomplete. Remove the last day.
-      let maxDate = new Date(dates[dates.length - 1]);
-      if (maxDate.getDate() == new Date().getDate()) {
-        maxDate = new Date(dates[dates.length - 2]);
-      }
+      let maxDate = new Date(dates[dates.length - 2]);
       minDate.setHours(23);
       maxDate.setHours(23);
       console.log(minDate, maxDate);
