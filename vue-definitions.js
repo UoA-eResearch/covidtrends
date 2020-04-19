@@ -499,8 +499,12 @@ let app = new Vue({
       //console.log('pulling', selectedData, ' for ', selectedRegion);
       const type = (selectedData == 'Reported Deaths') ? 'deaths' : 'cases'
       if (selectedRegion == "NZ") {
-        const url = "https://raw.githubusercontent.com/uoa-eresearch/nz-covid19-data-auto/master/data.csv";
-        Plotly.d3.csv(url, (data) => this.processData(this.preprocessNZData(data, selectedData), selectedRegion, updateSelectedCountries));
+        const lastModifiedUrl = "https://raw.githubusercontent.com/UoA-eResearch/nz-covid19-data-auto/master/last_modified.txt";
+        var parent = this;
+        Plotly.d3.text(lastModifiedUrl, function(lastModified) {
+          const url = "https://raw.githubusercontent.com/uoa-eresearch/nz-covid19-data-auto/master/data.csv";
+          Plotly.d3.csv(url, (data) => parent.processData(parent.preprocessNZData(data, selectedData, lastModified), selectedRegion, updateSelectedCountries));
+        })
       } else if (selectedRegion == "US") {
         const url = "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv";
         Plotly.d3.csv(url, (data) => this.processData(this.preprocessNYTData(data, type), selectedRegion, updateSelectedCountries));
@@ -650,7 +654,7 @@ let app = new Vue({
       }
     },
 
-    preprocessNZData(data, type) {
+    preprocessNZData(data, type, lastModified) {
       if (type == "Reported Deaths") return [{}];
       console.log(data);
       let recastData = {};
@@ -669,8 +673,12 @@ let app = new Vue({
       aggregates["New Zealand (20 DHBs)"] = aggregates["North Island (15 DHBs)"].concat(aggregates["South Island (5 DHBs)"]);
       let dates = this.removeRepeats(data.map(e => e["Date of report"]).sort())
       let minDate = new Date(dates[0]);
+      lastModified = new Date(lastModified.slice(lastModified.indexOf(",") + 1));
       // The last day in the dataset is reported at 9am, so is incomplete. Remove the last day.
-      let maxDate = new Date(dates[dates.length - 2]);
+      let maxDate = new Date(dates[dates.length - 1]);
+      if (maxDate.getDate() == lastModified.getDate()) {
+        maxDate = new Date(dates[dates.length - 2]);
+      }
       minDate.setHours(23);
       maxDate.setHours(23);
       console.log(minDate, maxDate);
