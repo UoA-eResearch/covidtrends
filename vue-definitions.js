@@ -667,12 +667,7 @@ let app = new Vue({
         "community": "Community transmission"
       }
       aggregates["New Zealand (20 DHBs)"] = aggregates["North Island (15 DHBs)"].concat(aggregates["South Island (5 DHBs)"]);
-      function fixNZDate(date) {
-        let tmp = date.split('/');
-        return `${tmp[2]}-${tmp[1]}-${tmp[0]}`;
-      }
-      let dates = this.removeRepeats(data.map(e => fixNZDate(e["Date of report"])).sort())
-      console.log(dates);
+      let dates = this.removeRepeats(data.map(e => e["Date of report"]).sort())
       let minDate = new Date(dates[0]);
       // The last day in the dataset is reported at 9am, so is incomplete. Remove the last day.
       let maxDate = new Date(dates[dates.length - 2]);
@@ -702,7 +697,7 @@ let app = new Vue({
           }
           if (type == this.dataTypes[0] && c["Case Type"] != "Confirmed") continue;
           if (type == this.nzDataTypes[1] && c["Case Type"] != "Probable") continue;
-          let dt = new Date(fixNZDate(c["Date of report"]));
+          let dt = new Date(c["Date of report"]);
           let d = recastData[c.DHB]  = (recastData[c.DHB] || {"Province/State": c.DHB, "Country/Region": "NZ", "Lat": null, "Long": null});
           if (!d[date_str]) d[date_str] = 0;
           if (dt <= date) {
