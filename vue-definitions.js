@@ -659,9 +659,9 @@ let app = new Vue({
       console.log(data);
       let recastData = {};
       let aggregates = {
-        "Auckland Region (3 DHBs)": ["Auckland", "Counties Manukau", "Waitemata"],
+        "Auckland Region (3 DHBs)": ["Auckland", "Counties Manukau", "Waitematā"],
         "Wellington Region (2 DHBs)": ["Capital and Coast", "Hutt Valley"],
-        "North Island (15 DHBs)": ["Auckland", "Bay of Plenty", "Capital and Coast", "Counties Manukau", "Hawke's Bay", "Hutt Valley", "Lakes", "MidCentral", "Northland", "Tairawhiti", "Taranaki", "Waikato", "Wairarapa", "Waitemata", "Whanganui"],
+        "North Island (15 DHBs)": ["Auckland", "Bay of Plenty", "Capital and Coast", "Counties Manukau", "Hawke's Bay", "Hutt Valley", "Lakes", "MidCentral", "Northland", "Tairāwhiti", "Taranaki", "Waikato", "Wairarapa", "Waitematā", "Whanganui"],
         "South Island (5 DHBs)": ["Southern", "South Canterbury", "Canterbury", "Nelson Marlborough", "West Coast"]
       }
       let transmissionTypes = {
@@ -687,6 +687,7 @@ let app = new Vue({
         let date_str = date;
         for (let i in data) {
           let c = data[i];
+          if (!aggregates["New Zealand (20 DHBs)"].includes(c.DHB)) console.error(c.DHB)
           if (this.selectedTravelHistory == this.travelHistoryOptions[1] && c["International travel"] != "Yes") continue;
           if (this.selectedTravelHistory == this.travelHistoryOptions[2] && c["International travel"] != "No") continue;
           if (this.selectedTravelHistory == this.travelHistoryOptions[3] && c["International travel"] != "") continue;
