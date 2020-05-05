@@ -59,7 +59,7 @@ Vue.component('graph', {
       }
 
       // if the user selects a custom range, use this
-      else if (data['xaxis.range[0]']) {
+      else if (data['xaxis.range[0]'] != undefined) {
         this.xrange = [data['xaxis.range[0]'], data['xaxis.range[1]']].map(e => parseFloat(e));
         this.yrange = [data['yaxis.range[0]'], data['yaxis.range[1]']].map(e => parseFloat(e));
         this.userSetRange = true;
