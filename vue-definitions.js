@@ -275,7 +275,7 @@ window.app = new Vue({
       }
     },
 
-    slopeDays() {
+    lookbackTime() {
       if (!this.firstLoad) {
         this.pullData(this.selectedData, this.selectedRegion, /*updateSelectedCountries*/ false);
       }
@@ -457,7 +457,7 @@ window.app = new Vue({
           for (let date of dates) {
             arr.push(row[date]);
           }
-          let slope = arr.map((e,i,a) => e - a[i - this.slopeDays]);
+          let slope = arr.map((e,i,a) => e - a[i - this.lookbackTime]);
           let region = row.region
 
           if (Object.keys(renames).includes(region)) {
@@ -1008,8 +1008,6 @@ window.app = new Vue({
     sliderSelected: false,
 
     day: 7,
-
-    slopeDays: 7,
 
     lookbackTime: 7,
 
