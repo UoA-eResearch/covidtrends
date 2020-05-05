@@ -672,13 +672,12 @@ let app = new Vue({
       }
       aggregates["New Zealand (20 DHBs)"] = aggregates["North Island (15 DHBs)"].concat(aggregates["South Island (5 DHBs)"]);
       let dates = this.removeRepeats(data.map(e => e["Date of report"]).sort())
+      console.log(dates);
       let minDate = new Date(dates[0]);
       lastModified = new Date(lastModified.slice(lastModified.indexOf(",") + 1));
       // The last day in the dataset is reported at 9am, so is incomplete. Remove the last day.
-      let maxDate = new Date(dates[dates.length - 1]);
-      if (maxDate.getDate() == lastModified.getDate()) {
-        maxDate = new Date(dates[dates.length - 2]);
-      }
+      lastModified.setDate(lastModified.getDate() - 1);
+      let maxDate = lastModified;
       minDate.setHours(23);
       maxDate.setHours(23);
       console.log(minDate, maxDate);
