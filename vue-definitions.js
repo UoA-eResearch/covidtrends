@@ -528,7 +528,8 @@ window.app = new Vue({
       let dates = this.removeRepeats(data.map(e => e["Date of report"]).sort())
       console.log(dates);
       let minDate = new Date(dates[0]);
-      lastModified = new Date(lastModified.slice(lastModified.indexOf(",") + 1));
+      console.log(lastModified);
+      lastModified = new Date(lastModified.slice(lastModified.indexOf(",") + 2));
       // The last day in the dataset is reported at 9am, so is incomplete. Remove the last day.
       lastModified.setDate(lastModified.getDate() - 1);
       let maxDate = lastModified;
