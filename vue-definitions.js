@@ -525,7 +525,7 @@ window.app = new Vue({
         "community": "Community transmission"
       }
       aggregates["New Zealand (20 DHBs)"] = aggregates["North Island (15 DHBs)"].concat(aggregates["South Island (5 DHBs)"]);
-      aggregates["New Zealand (20 DHBs)"].push("Managed Isolation & Quarantine");
+      aggregates["New Zealand (20 DHBs)"].push("Managed isolation & quarantine");
       let dates = this.removeRepeats(data.map(e => e["Date of report"]).sort())
       console.log(dates);
       let minDate = new Date(dates[0]);
