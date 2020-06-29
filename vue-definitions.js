@@ -525,7 +525,7 @@ window.app = new Vue({
         "community": "Community transmission"
       }
       aggregates["New Zealand (20 DHBs)"] = aggregates["North Island (15 DHBs)"].concat(aggregates["South Island (5 DHBs)"]);
-      aggregates["New Zealand (20 DHBs)"].push("Managed isolation & Quarantine");
+      aggregates["New Zealand (20 DHBs)"].push("Managed Isolation & Quarantine");
       let dates = this.removeRepeats(data.map(e => e["Date of report"]).sort())
       console.log(dates);
       let minDate = new Date(dates[0]);
@@ -542,7 +542,10 @@ window.app = new Vue({
         let date_str = date;
         for (let i in data) {
           let c = data[i];
-          if (!aggregates["New Zealand (20 DHBs)"].includes(c.DHB)) console.error(c.DHB)
+          if (!aggregates["New Zealand (20 DHBs)"].includes(c.DHB)) {
+            console.error(c.DHB)
+            aggregates["New Zealand (20 DHBs)"].push(c.DHB)
+          }
           if (this.selectedTravelHistory == this.travelHistoryOptions[1] && c["Overseas travel"] != "Yes") continue;
           if (this.selectedTravelHistory == this.travelHistoryOptions[2] && c["Overseas travel"] != "No") continue;
           if (this.selectedTravelHistory == this.travelHistoryOptions[3] && c["Overseas travel"] != "") continue;
