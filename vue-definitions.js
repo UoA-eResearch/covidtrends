@@ -357,12 +357,8 @@ window.app = new Vue({
       //console.log('pulling', selectedData, ' for ', selectedRegion);
       const type = (selectedData == 'Reported Deaths') ? 'deaths' : 'cases'
       if (selectedRegion == "NZ") {
-        const lastModifiedUrl = "https://raw.githubusercontent.com/UoA-eResearch/nz-covid19-data-auto/master/last_modified.txt";
-        var parent = this;
-        Plotly.d3.text(lastModifiedUrl, function(lastModified) {
-          const url = "https://raw.githubusercontent.com/uoa-eresearch/nz-covid19-data-auto/master/data.csv";
-          Plotly.d3.csv(url, (data) => parent.processData(parent.preprocessNZData(data, selectedData, lastModified), selectedRegion, updateSelectedCountries));
-        })
+        const url = "https://raw.githubusercontent.com/UoA-eResearch/nz-covid19-data-auto/master/cases_by_DHB_over_time.csv";
+        Plotly.d3.csv(url, (data) => this.processData(this.preprocessNZData(data, selectedData), selectedRegion, updateSelectedCountries));
       } else if (selectedRegion == "US") {
         const url = "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv";
         Plotly.d3.csv(url, (data) => this.processData(this.preprocessNYTData(data, type), selectedRegion, updateSelectedCountries));
@@ -523,76 +519,39 @@ window.app = new Vue({
     },
 
     preprocessNZData(data, type, lastModified) {
-      if (type == "Reported Deaths") return [{}];
       console.log(data);
       let recastData = {};
       let aggregates = {
-        "Auckland Region (3 DHBs)": ["Auckland", "Counties Manukau", "Waitematā"],
+        "Auckland Region (3 DHBs)": ["Auckland", "Counties Manukau", "Waitemata"],
         "Wellington Region (2 DHBs)": ["Capital and Coast", "Hutt Valley"],
-        "North Island (15 DHBs)": ["Auckland", "Bay of Plenty", "Capital and Coast", "Counties Manukau", "Hawke's Bay", "Hutt Valley", "Lakes", "MidCentral", "Northland", "Tairāwhiti", "Taranaki", "Waikato", "Wairarapa", "Waitematā", "Whanganui"],
+        "North Island (15 DHBs)": ["Auckland", "Bay of Plenty", "Capital and Coast", "Counties Manukau", "Hawke's Bay", "Hutt Valley", "Lakes", "Midcentral", "Northland", "Tairawhiti", "Taranaki", "Waikato", "Wairarapa", "Waitemata", "Whanganui"],
         "South Island (5 DHBs)": ["Southern", "South Canterbury", "Canterbury", "Nelson Marlborough", "West Coast"]
-      }
-      let transmissionTypes = {
-        "overseas": "Overseas transmission",
-        "contact": "Contact with a known case transmission",
-        "investigating": "Investigating transmission",
-        "community": "Community transmission"
       }
       aggregates["New Zealand (20 DHBs)"] = aggregates["North Island (15 DHBs)"].concat(aggregates["South Island (5 DHBs)"]);
       aggregates["New Zealand (20 DHBs)"].push("Managed isolation & quarantine"); // Can be either north island or south island
-      let dates = this.removeRepeats(data.map(e => e["Date of report"]).sort())
+      let dates = this.removeRepeats(data.map(e => e.Date).sort())
       console.log(dates);
-      let minDate = new Date(dates[0]);
-      console.log(lastModified);
-      lastModified = new Date(lastModified.slice(lastModified.indexOf(",") + 2));
-      // The last day in the dataset is reported at 9am, so is incomplete. Remove the last day.
-      lastModified.setDate(lastModified.getDate() - 1);
-      let maxDate = lastModified;
-      minDate.setHours(23);
-      maxDate.setHours(23);
-      console.log(minDate, maxDate);
-      let date = minDate;
-      while (date <= maxDate) {
-        let date_str = date;
-        for (let i in data) {
-          let c = data[i];
-          if (!aggregates["New Zealand (20 DHBs)"].includes(c.DHB)) {
-            console.error(c.DHB)
-            aggregates["New Zealand (20 DHBs)"].push(c.DHB)
+      for (let date of dates) {
+        var today_data = data.filter(d => d.Date == date)
+        for (let d of today_data) {
+          let rd = recastData[d.Region]  = (recastData[d.Region] || {"Province/State": d.Region, "Country/Region": "NZ", "Lat": null, "Long": null});
+          if (type == this.dataTypes[0]) {
+            rd[date] = parseInt(d["Cumulative confirmed"])
+          } else if (type == this.dataTypes[1]) {
+            rd[date] = parseInt(d["Cumulative deceased"])
+          } else if (type == this.nzDataTypes[0]) {
+            rd[date] = parseInt(d["Cumulative total cases"])
+          } else if (type == this.nzDataTypes[1]) {
+            rd[date] = parseInt(d["Cumulative probable"])
           }
-          if (this.selectedTravelHistory == this.travelHistoryOptions[1] && c["Overseas travel"] != "Yes") continue;
-          if (this.selectedTravelHistory == this.travelHistoryOptions[2] && c["Overseas travel"] != "No") continue;
-          if (this.selectedTravelHistory == this.travelHistoryOptions[3] && c["Overseas travel"] != "") continue;
-          if (this.selectedAge == this.ageOptions[0]) {
-            // pass
-          } else if (this.selectedAge == "30 to 69") {
-            if (!["30 to 39", "40 to 49", "50 to 59", "60 to 69"].includes(c["Age group"])) {
-              continue;
-            }
-          } else if (this.selectedAge == "<70") {
-            if (c["Age group"] == "70+") {
-              continue;
-            }
-          } else if (this.selectedAge != c["Age group"]) {
-            continue;
-          }
-          if (type == this.dataTypes[0] && c["Case Type"] != "Confirmed") continue;
-          if (type == this.nzDataTypes[1] && c["Case Type"] != "Probable") continue;
-          let dt = new Date(c["Date of report"]);
-          let d = recastData[c.DHB]  = (recastData[c.DHB] || {"Province/State": c.DHB, "Country/Region": "NZ", "Lat": null, "Long": null});
-          if (!d[date_str]) d[date_str] = 0;
-          if (dt <= date) {
-            d[date_str]++;
-            for (var aggregate_name in aggregates) {
-              let d = recastData[aggregate_name]  = (recastData[aggregate_name] || {"Province/State": aggregate_name, "Country/Region": "NZ", "Lat": null, "Long": null});
-              if (aggregates[aggregate_name].includes(c.DHB)) {
-                if (!d[date_str]) d[date_str] = 0;
-                d[date_str]++;
-              }
+          for (var aggregate_name in aggregates) {
+            let ard = recastData[aggregate_name]  = (recastData[aggregate_name] || {"Province/State": aggregate_name, "Country/Region": "NZ", "Lat": null, "Long": null});
+            if (aggregates[aggregate_name].includes(d.Region)) {
+              if (!ard[date]) ard[date] = 0;
+              ard[date] += rd[date];
             }
           }
         }
-        date.setDate(date.getDate() + 1);
       }
 
 
@@ -780,14 +739,8 @@ window.app = new Vue({
     },
 
     layout() {
-      let timePrefix = "to 11:59pm ";
-      if (this.selectedRegion == "NZ") {
-        timePrefix += "NZST ";
-      } else {
-        timePrefix += "UTC "
-      }
       return {
-        title: 'Trajectory of ' + this.selectedRegion + ' COVID-19 ' + this.selectedData + ' (' + timePrefix + this.formatDate(this.dates[this.day - 1]) + ')',
+        title: 'Trajectory of ' + this.selectedRegion + ' COVID-19 ' + this.selectedData + ' (' + this.formatDate(this.dates[this.day - 1]) + ')',
         showlegend: false,
         autorange: false,
         xaxis: {
