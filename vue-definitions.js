@@ -513,9 +513,9 @@ window.app = new Vue({
       console.log(data);
       let recastData = {};
       let aggregates = {
-        "Auckland Region (3 DHBs)": ["Auckland", "Counties Manukau", "Waitematā"],
+        "Auckland Region (3 DHBs)": ["Auckland", "Counties Manukau", "Waitemata"],
         "Wellington Region (2 DHBs)": ["Capital and Coast", "Hutt Valley"],
-        "North Island (15 DHBs)": ["Auckland", "Bay of Plenty", "Capital and Coast", "Counties Manukau", "Hawke's Bay", "Hutt Valley", "Lakes", "MidCentral", "Northland", "Tairāwhiti", "Taranaki", "Waikato", "Wairarapa", "Waitematā", "Whanganui"],
+        "North Island (15 DHBs)": ["Auckland", "Bay of Plenty", "Capital and Coast", "Counties Manukau", "Hawke's Bay", "Hutt Valley", "Lakes", "MidCentral", "Northland", "Tairawhiti", "Taranaki", "Waikato", "Wairarapa", "Waitemata", "Whanganui"],
         "South Island (5 DHBs)": ["Southern", "South Canterbury", "Canterbury", "Nelson Marlborough", "West Coast"]
       }
       let transmissionTypes = {
@@ -525,8 +525,8 @@ window.app = new Vue({
         "community": "Community transmission"
       }
       aggregates["New Zealand (20 DHBs)"] = aggregates["North Island (15 DHBs)"].concat(aggregates["South Island (5 DHBs)"]);
-      aggregates["New Zealand (20 DHBs)"].push("Managed isolation & quarantine"); // Can be either north island or south island
-      let dates = this.removeRepeats(data.map(e => e["Date of report"]).sort())
+      aggregates["New Zealand (20 DHBs)"].push("Managed Isolation & Quarantine"); // Can be either north island or south island
+      let dates = this.removeRepeats(data.map(e => e["Report Date"]).sort())
       console.log(dates);
       let minDate = new Date(dates[0]);
       console.log(lastModified);
@@ -551,20 +551,20 @@ window.app = new Vue({
           if (this.selectedTravelHistory == this.travelHistoryOptions[3] && c["Overseas travel"] != "") continue;
           if (this.selectedAge == this.ageOptions[0]) {
             // pass
-          } else if (this.selectedAge == "30 to 69") {
-            if (!["30 to 39", "40 to 49", "50 to 59", "60 to 69"].includes(c["Age group"])) {
+          } else if (this.selectedAge == "30 to 89") {
+            if (!["30 to 39", "40 to 49", "50 to 59", "60 to 69", "70 to 79", "80 to 89"].includes(c["Age group"])) {
               continue;
             }
-          } else if (this.selectedAge == "<70") {
-            if (c["Age group"] == "70+") {
+          } else if (this.selectedAge == "<90") {
+            if (c["Age group"] == "90+") {
               continue;
             }
           } else if (this.selectedAge != c["Age group"]) {
             continue;
           }
-          if (type == this.dataTypes[0] && c["Case Type"] != "Confirmed") continue;
-          if (type == this.nzDataTypes[1] && c["Case Type"] != "Probable") continue;
-          let dt = new Date(c["Date of report"]);
+          if (type == this.dataTypes[0] && c["Case Status"] != "Confirmed") continue;
+          if (type == this.nzDataTypes[1] && c["Case Status"] != "Probable") continue;
+          let dt = new Date(c["Report Date"]);
           let d = recastData[c.DHB]  = (recastData[c.DHB] || {"Province/State": c.DHB, "Country/Region": "NZ", "Lat": null, "Long": null});
           if (!d[date_str]) d[date_str] = 0;
           if (dt <= date) {
@@ -1026,7 +1026,7 @@ window.app = new Vue({
 
     selectedAge: "All ages",
 
-    ageOptions: ["All ages", "0 to 9", "10 to 19", "20 to 29", "30 to 39", "40 to 49", "50 to 59", "60 to 69", "70+", "<70", "30 to 69"],
+    ageOptions: ["All ages", "0 to 9", "10 to 19", "20 to 29", "30 to 39", "40 to 49", "50 to 59", "60 to 69", "70 to 79", "80 to 89", "90+", "<90", "30 to 89"],
 
     minCasesInCountry: 0,
 
